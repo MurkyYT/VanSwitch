@@ -6,9 +6,9 @@ Vanguard stays on even when the game isn't started or opened.
 
 **VanSwitch** tries to address that issue (maybe not for everyone) by giving you the opportunity to enable/disable Vanguard completely or closing vanguard automatically when you exit out of Valorant.  
 ## How to use
-**1.** You can disable/enable vanguard completely thru the 'Disable Vanguard' button or 'Enable Vanguard' in the right click menu (you will need admin rights to do that).  
-**2.** VanSwitch also lets you choose if you want to close Vanguard after you have launched the game and played it for a bit and closed it.  
-**3.** There is also an option for starting VanSwitch with windows startup.  
+* You can disable/enable vanguard completely thru the 'Disable Vanguard' button or 'Enable Vanguard' in the right click menu (you will need admin rights to do that).  
+* VanSwitch also lets you choose if you want to close Vanguard after you have launched the game and played it for a bit and closed it.  
+* There is also an option for starting VanSwitch with windows startup.  
 **Image demonstration of the menu:**  
 ![right-click-menu](image.png)
 
