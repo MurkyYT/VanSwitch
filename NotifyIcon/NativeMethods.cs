@@ -4,6 +4,7 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
+using System.Text;
 
 // ReSharper disable InconsistentNaming
 
@@ -80,5 +81,18 @@ namespace NotifyIconLibrary
             [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]
             public string szPath;
         }
+        public delegate void WinEventDelegate(IntPtr hWinEventHook, uint eventType, IntPtr hwnd, int idObject, int idChild, uint dwEventThread, uint dwmsEventTime);
+
+        [DllImport("user32.dll")]
+        static public extern IntPtr SetWinEventHook(uint eventMin, uint eventMax, IntPtr hmodWinEventProc, WinEventDelegate lpfnWinEventProc, uint idProcess, uint idThread, uint dwFlags);
+
+        public const uint WINEVENT_OUTOFCONTEXT = 0;
+        public const uint EVENT_SYSTEM_FOREGROUND = 3;
+
+        [DllImport("user32.dll")]
+        static public extern IntPtr GetForegroundWindow();
+
+        [DllImport("user32.dll")]
+        static public extern int GetWindowText(IntPtr hWnd, StringBuilder text, int count);
     }
 }

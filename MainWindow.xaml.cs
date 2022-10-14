@@ -24,7 +24,6 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using static System.Windows.Forms.LinkLabel;
 
 namespace VanSwitch
 {
@@ -33,13 +32,26 @@ namespace VanSwitch
     /// </summary>
     public partial class MainWindow : Window
     {
-        const string VER = "1.0.0";
+        const string VER = "1.0.1";
         readonly NotifyIconWrapper notifyicon = new NotifyIconWrapper();
         readonly ContextMenu cm = new ContextMenu();
-        readonly System.Windows.Threading.DispatcherTimer appTimer = new System.Windows.Threading.DispatcherTimer();
         bool found, open = false;
         readonly MenuItem autodisable = new MenuItem();
         readonly MenuItem startUpCheck = new MenuItem();
+        NativeMethods.WinEventDelegate dele = null;
+        private string GetActiveWindowTitle()
+        {
+            const int nChars = 256;
+            IntPtr handle = IntPtr.Zero;
+            StringBuilder Buff = new StringBuilder(nChars);
+            handle = NativeMethods.GetForegroundWindow();
+
+            if (NativeMethods.GetWindowText(handle, Buff, nChars) > 0)
+            {
+                return Buff.ToString();
+            }
+            return null;
+        }
         private BitmapSource UACShield()
         {
             BitmapSource shieldSource;
@@ -100,6 +112,11 @@ namespace VanSwitch
                 {
                     Source = shield
                 };
+                MenuItem checkForUpdates = new MenuItem
+                {
+                    Header = "Check for updates"
+                };
+                checkForUpdates.Click += CheckForUpdates_Click; ;
                 autodisable.IsChecked = Properties.Settings.Default.autodisable;
                 autodisable.Header = "Exit Vanguard Automatically";
                 autodisable.IsCheckable = true;
@@ -121,8 +138,11 @@ namespace VanSwitch
                 cm.Items.Add(autodisable);
                 cm.Items.Add(startUpCheck);
                 cm.Items.Add(new Separator());
+                cm.Items.Add(checkForUpdates);
                 cm.Items.Add(exit);
                 cm.StaysOpen = false;
+                dele = new NativeMethods.WinEventDelegate(WinEventProc);
+                IntPtr m_hhook = NativeMethods.SetWinEventHook(NativeMethods.EVENT_SYSTEM_FOREGROUND, NativeMethods.EVENT_SYSTEM_FOREGROUND, IntPtr.Zero, dele, 0, 0, NativeMethods.WINEVENT_OUTOFCONTEXT);
                 KillDuplicates();
                 GC.Collect();
             }
@@ -132,11 +152,33 @@ namespace VanSwitch
                 MessageBox.Show("Couldn't find Vanguard Services on this computer make sure it is installed correctly (If you are certain it is installed correctly try to run this app as administrator)", "Vanguard Isn't Found", MessageBoxButton.OK, MessageBoxImage.Error);
                 Process.GetCurrentProcess().Kill();
             }
-           
             Top = -1000;
             Left = -1000;
             InitializeComponent();
         }
+        public void WinEventProc(IntPtr hWinEventHook, uint eventType, IntPtr hwnd, int idObject, int idChild, uint dwEventThread, uint dwmsEventTime)
+        {
+            try
+            {
+                if (Properties.Settings.Default.autodisable && ACEnabled())
+                {
+                    if (Process.GetProcessesByName("Valorant").Length > 0) { found = open = true; }
+                    // if the game was opened and Valorant procces isnt found disable vanguard
+                    if (!found && open)
+                    {
+                        DisableAC();
+                        open = false;
+                    }
+                    found = false;
+                }
+            }
+            catch (Exception ex ) { Debug.WriteLine(ex); }
+        }
+        private void CheckForUpdates_Click(object sender, RoutedEventArgs e)
+        {
+            CheckForUpdates();
+        }
+
         void CheckForUpdates()
         {
             try
@@ -289,57 +331,39 @@ namespace VanSwitch
         {
             try
             {
+                this.notifyicon.Icon = Properties.Resources.disabled;
+                this.notifyicon.Tip = "Vanguard Disabled";
+                this.notifyicon.Update();
                 var vgksc = new ServiceController("vgk");
-                ServiceHelper.ChangeStartMode(vgksc, ServiceStartMode.Disabled);
                 var vgcsc = new ServiceController("vgc");
-                ServiceHelper.ChangeStartMode(vgcsc, ServiceStartMode.Disabled);
                 if (vgcsc.Status == ServiceControllerStatus.Running || vgcsc.Status == ServiceControllerStatus.StartPending || vgcsc.Status == ServiceControllerStatus.ContinuePending)
                     vgcsc.Stop();
                 if (vgksc.Status == ServiceControllerStatus.Running || vgksc.Status == ServiceControllerStatus.StartPending || vgksc.Status == ServiceControllerStatus.ContinuePending)
                     vgksc.Stop();
                 foreach (var process in Process.GetProcessesByName("vgtray")) { process.Kill(); }
+                ServiceHelper.ChangeStartMode(vgksc, ServiceStartMode.Disabled);
+                ServiceHelper.ChangeStartMode(vgcsc, ServiceStartMode.Disabled);
                 return true;
             }
             catch { return false; }
-        }
-        private void TimerCallback(object sender, EventArgs e)
-        {
-            try
-            {
-                if (Properties.Settings.Default.autodisable && ACEnabled())
-                {
-                    if (Process.GetProcessesByName("Valorant").Length > 0) { found = open = true; }
-                    // if the game is closed disables Vanguard
-                    if (!found && open)
-                    {
-                        DisableAC();
-                        open = false;
-                    }
-                    found = false;
-                }
-                if (ACEnabled())
-                {
-                    this.notifyicon.Icon = Properties.Resources.enabled;
-                    this.notifyicon.Tip = "Vanguard Enabled";
-                }
-                else
-                {
-                    this.notifyicon.Icon = Properties.Resources.disabled;
-                    this.notifyicon.Tip = "Vanguard Disabled";
-                    foreach (var process in Process.GetProcessesByName("vgtray")) { process.Kill(); }
-                }
-                this.notifyicon.Update();
-            }
-            catch { }
         }
         private void Window_SourceInitialized(object sender, EventArgs e)
         {
             Visibility = Visibility.Hidden;
             this.notifyicon.ShowTip = true;
             this.notifyicon.RightMouseButtonClick += Notifyicon_RightMouseButtonClick;
-            appTimer.Interval = TimeSpan.FromMilliseconds(1000);
-            appTimer.Tick += new EventHandler(TimerCallback);
-            appTimer.Start();
+            if (ACEnabled())
+            {
+                this.notifyicon.Icon = Properties.Resources.enabled;
+                this.notifyicon.Tip = "Vanguard Enabled";
+            }
+            else
+            {
+                this.notifyicon.Icon = Properties.Resources.disabled;
+                this.notifyicon.Tip = "Vanguard Disabled";
+                foreach (var process in Process.GetProcessesByName("vgtray")) { process.Kill(); }
+            }
+            this.notifyicon.Update();
         }
         private void Notifyicon_RightMouseButtonClick(object sender, MouseLocationEventArgs e)
         {
