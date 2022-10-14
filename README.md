@@ -10,7 +10,7 @@ Vanguard stays on even when the game isn't started or opened.
 * VanSwitch also lets you choose if you want to close Vanguard after you have launched the game and played it for a bit and closed it.  
 * There is also an option for starting VanSwitch with windows startup.  
 **Image demonstration of the menu:**  
-![right-click-menu](image.png)
+![right-click-menu](menuimage.png)
 
 ## Disclaimer
 VanSwitch might not work properly or even break some services.
