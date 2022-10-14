@@ -120,5 +120,8 @@
   <ItemGroup>
     <Resource Include="Icons\disabled.ico" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="version.txt" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

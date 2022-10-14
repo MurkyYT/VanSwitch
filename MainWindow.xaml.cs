@@ -8,6 +8,8 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Management;
+using System.Net;
+using System.Net.Http;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.ServiceProcess;
@@ -22,6 +24,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using static System.Windows.Forms.LinkLabel;
 
 namespace VanSwitch
 {
@@ -30,6 +33,7 @@ namespace VanSwitch
     /// </summary>
     public partial class MainWindow : Window
     {
+        const string VER = "1.0.0";
         readonly NotifyIconWrapper notifyicon = new NotifyIconWrapper();
         readonly ContextMenu cm = new ContextMenu();
         readonly System.Windows.Threading.DispatcherTimer appTimer = new System.Windows.Threading.DispatcherTimer();
@@ -72,7 +76,7 @@ namespace VanSwitch
             {
                 MenuItem abouttext = new MenuItem();
                 BitmapSource shield = UACShield();
-                abouttext.Header = $"VanSwitch ({new FileInfo(Assembly.GetExecutingAssembly().Location).LastWriteTimeUtc:dd/MM/yyyy - HH:mm:ss})";
+                abouttext.Header = $"VanSwitch ({new FileInfo(Assembly.GetExecutingAssembly().Location).LastWriteTimeUtc:dd/MM/yyyy} - {VER})";
                 abouttext.IsEnabled = false;
                 abouttext.Icon = new System.Windows.Controls.Image
                 {
@@ -128,9 +132,35 @@ namespace VanSwitch
                 MessageBox.Show("Couldn't find Vanguard Services on this computer make sure it is installed correctly (If you are certain it is installed correctly try to run this app as administrator)", "Vanguard Isn't Found", MessageBoxButton.OK, MessageBoxImage.Error);
                 Process.GetCurrentProcess().Kill();
             }
+           
             Top = -1000;
             Left = -1000;
             InitializeComponent();
+        }
+        void CheckForUpdates()
+        {
+            try
+            {
+                System.Net.WebClient client = new System.Net.WebClient() { Encoding = Encoding.UTF8 };
+                client.Headers.Add("user-agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; .NET CLR 1.0.3705;)");
+                string latestVersion = client.DownloadString("https://raw.githubusercontent.com/MurkyYT/VanSwitch/master/version.txt");
+                if(latestVersion == VER)
+                {
+                    MessageBox.Show("You have the latest version!", "Check for updates (VanSwitch)", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    MessageBoxResult result = MessageBox.Show($"Found newer verison ({latestVersion}) would you like to downlaod it?", "Check for updates (VanSwitch)", MessageBoxButton.YesNo, MessageBoxImage.Information);
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        System.Diagnostics.Process.Start("https://github.com/MurkyYT/VanSwitch/releases/latest/download/VanSwitch.exe");
+                    }
+                }
+            }
+            catch 
+            {
+                MessageBox.Show("Couldn't check for updates", "Check for updates (VanSwitch)", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
         bool DoesServiceExist(string serviceName)
         {
