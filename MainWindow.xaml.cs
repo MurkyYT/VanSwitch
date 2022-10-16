@@ -32,13 +32,13 @@ namespace VanSwitch
     /// </summary>
     public partial class MainWindow : Window
     {
-        const string VER = "1.0.2";
+        const string VER = "1.0.3";
         readonly NotifyIconWrapper notifyicon = new NotifyIconWrapper();
         readonly ContextMenu cm = new ContextMenu();
-        bool found, open = false;
+        //bool opened = false;
         readonly MenuItem autodisable = new MenuItem();
         readonly MenuItem startUpCheck = new MenuItem();
-        NativeMethods.WinEventDelegate dele = null;
+        //NativeMethods.WinEventDelegate dele = null;
         private string GetActiveWindowTitle()
         {
             const int nChars = 256;
@@ -81,6 +81,24 @@ namespace VanSwitch
                     BitmapSizeOptions.FromEmptyOptions());
             }
             return shieldSource;
+        }
+        void processStopEvent_EventArrived(object sender, EventArrivedEventArgs e)
+        {
+            try
+            {
+                if (Properties.Settings.Default.autodisable && ACEnabled())
+                {
+                    ManagementBaseObject obj = (ManagementBaseObject)e.NewEvent["TargetInstance"];
+                    string processName = obj["Name"].ToString();
+                    //Debug.WriteLine($"VanSwitch {VER} : "+"Process stopped. Name: " + processName);
+                    if (processName == "VALORANT.exe")
+                    {
+                        Debug.WriteLine($"VanSwitch {VER} : " + "Valorant stopped");
+                        DisableAC();
+                    }
+                }
+            }
+            catch (Exception ex) { Debug.WriteLine($"VanSwitch {VER} : " + ex.StackTrace); }
         }
         public MainWindow()
         {
@@ -141,12 +159,16 @@ namespace VanSwitch
                 cm.Items.Add(checkForUpdates);
                 cm.Items.Add(exit);
                 cm.StaysOpen = false;
-                dele = new NativeMethods.WinEventDelegate(WinEventProc);
-                IntPtr m_hhook = NativeMethods.SetWinEventHook(NativeMethods.EVENT_SYSTEM_FOREGROUND, NativeMethods.EVENT_SYSTEM_FOREGROUND, IntPtr.Zero, dele, 0, 0, NativeMethods.WINEVENT_OUTOFCONTEXT);
+                //dele = new NativeMethods.WinEventDelegate(WinEventProc);
+                //IntPtr m_hhook = NativeMethods.SetWinEventHook(NativeMethods.EVENT_SYSTEM_FOREGROUND, NativeMethods.EVENT_SYSTEM_FOREGROUND, IntPtr.Zero, dele, 0, 0, NativeMethods.WINEVENT_OUTOFCONTEXT);
                 KillDuplicates();
+                string queryString = "SELECT * FROM __InstanceDeletionEvent WITHIN .025 WHERE TargetInstance ISA 'Win32_Process'";
+                ManagementEventWatcher managementEventWatcher = new ManagementEventWatcher(queryString);
+                managementEventWatcher.EventArrived += processStopEvent_EventArrived;
+                managementEventWatcher.Start();
                 GC.Collect();
             }
-            catch ( Exception ex){ Debug.WriteLine(ex);  }
+            catch ( Exception ex){ Debug.WriteLine($"VanSwitch {VER} : "+ex);  }
             if (!DoesServiceExist("vgk") || !DoesServiceExist("vgc"))
             {
                 MessageBox.Show("Couldn't find Vanguard Services on this computer make sure it is installed correctly (If you are certain it is installed correctly try to run this app as administrator)", "Vanguard Isn't Found", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -155,24 +177,6 @@ namespace VanSwitch
             Top = -1000;
             Left = -1000;
             InitializeComponent();
-        }
-        public void WinEventProc(IntPtr hWinEventHook, uint eventType, IntPtr hwnd, int idObject, int idChild, uint dwEventThread, uint dwmsEventTime)
-        {
-            try
-            {
-                if (Properties.Settings.Default.autodisable && ACEnabled())
-                {
-                    if (Process.GetProcessesByName("Valorant").Length > 0) { found = open = true; }
-                    // if the game was opened and Valorant procces isnt found disable vanguard
-                    if (!found && open)
-                    {
-                        DisableAC();
-                        open = false;
-                    }
-                    found = false;
-                }
-            }
-            catch (Exception ex ) { Debug.WriteLine(ex); }
         }
         private void CheckForUpdates_Click(object sender, RoutedEventArgs e)
         {
@@ -337,34 +341,58 @@ namespace VanSwitch
         {
             try
             {
+                Debug.WriteLine($"VanSwitch {VER} : " + "Enabling vanguard...");
                 var vgksc = new ServiceController("vgk");
                 ServiceHelper.ChangeStartMode(vgksc, ServiceStartMode.System);
+                Debug.WriteLine($"VanSwitch {VER} : " + "Enabled vgk service");
                 var vgcsc = new ServiceController("vgc");
                 ServiceHelper.ChangeStartMode(vgcsc, ServiceStartMode.Manual);
+                Debug.WriteLine($"VanSwitch {VER} : " + "Enabled vgc service");
                 System.Diagnostics.Process.Start("shutdown.exe", "-r -t 0");
                 return true;
             }
-            catch { return false; }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"VanSwitch {VER} : " + ex.StackTrace);
+                return false; 
+            }
         }
         public bool DisableAC()
         {
             try
             {
+                Debug.WriteLine($"VanSwitch {VER} : " + "Disabling vanguard...");
                 var vgksc = new ServiceController("vgk");
                 var vgcsc = new ServiceController("vgc");
                 if (vgcsc.Status == ServiceControllerStatus.Running || vgcsc.Status == ServiceControllerStatus.StartPending || vgcsc.Status == ServiceControllerStatus.ContinuePending)
+                {
                     vgcsc.Stop();
+                    Debug.WriteLine($"VanSwitch {VER} : " + "Stopped vgc");
+                }
                 if (vgksc.Status == ServiceControllerStatus.Running || vgksc.Status == ServiceControllerStatus.StartPending || vgksc.Status == ServiceControllerStatus.ContinuePending)
+                {
                     vgksc.Stop();
-                foreach (var process in Process.GetProcessesByName("vgtray")) { process.Kill(); }
+                    Debug.WriteLine($"VanSwitch {VER} : " + "Stopped vgk");
+                }
+                foreach (var process in Process.GetProcessesByName("vgtray")) 
+                { 
+                    process.Kill();
+                    Debug.WriteLine($"VanSwitch {VER} : " + "Killed vgtray");
+                }
                 this.notifyicon.Icon = Properties.Resources.disabled;
                 this.notifyicon.Tip = "Vanguard Disabled";
                 this.notifyicon.Update();
                 ServiceHelper.ChangeStartMode(vgksc, ServiceStartMode.Disabled);
+                Debug.WriteLine($"VanSwitch {VER} : " + "Disabled vgk service");
                 ServiceHelper.ChangeStartMode(vgcsc, ServiceStartMode.Disabled);
+                Debug.WriteLine($"VanSwitch {VER} : " + "Disabled vgc service");
                 return true;
             }
-            catch { return false; }
+            catch (Exception ex) 
+            {
+                Debug.WriteLine($"VanSwitch {VER} : " + ex.StackTrace);
+                return false; 
+            }
         }
         private void Window_SourceInitialized(object sender, EventArgs e)
         {
