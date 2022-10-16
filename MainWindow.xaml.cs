@@ -88,7 +88,7 @@ namespace VanSwitch
             {
                 MenuItem abouttext = new MenuItem();
                 BitmapSource shield = UACShield();
-                abouttext.Header = $"VanSwitch ({new FileInfo(Assembly.GetExecutingAssembly().Location).LastWriteTimeUtc:dd/MM/yyyy} - {VER})";
+                abouttext.Header = $"VanSwitch ({VER})";
                 abouttext.IsEnabled = false;
                 abouttext.Icon = new System.Windows.Controls.Image
                 {
