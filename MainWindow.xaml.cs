@@ -259,10 +259,14 @@ namespace VanSwitch
             }
             else if (result == MessageBoxResult.Yes)
                 VistaSecurity.RestartElevated("-enableac");
+            this.notifyicon.Icon = Properties.Resources.enabled;
+            this.notifyicon.Tip = "Vanguard Enabled";
+            this.notifyicon.Update();
         }
 
         private void Disable_Click(object sender, RoutedEventArgs e)
         {
+
             MessageBoxResult result =
                 MessageBox.Show("Are you sure you want to disable Vanguard?", "Disable Vanguard", MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (VistaSecurity.IsAdmin() && result == MessageBoxResult.Yes)
@@ -271,6 +275,9 @@ namespace VanSwitch
             }
             else if (result == MessageBoxResult.Yes)
                 VistaSecurity.RestartElevated("-disableac");
+            this.notifyicon.Icon = Properties.Resources.disabled;
+            this.notifyicon.Tip = "Vanguard Disabled";
+            this.notifyicon.Update();
         }
 
         private void Exit_Click(object sender, RoutedEventArgs e)
@@ -306,6 +313,21 @@ namespace VanSwitch
                     return "Status Changing";
             }
         }
+        void UpdateNotifyIcon()
+        {
+            if (ACEnabled())
+            {
+                this.notifyicon.Icon = Properties.Resources.enabled;
+                this.notifyicon.Tip = "Vanguard Enabled";
+            }
+            else
+            {
+                this.notifyicon.Icon = Properties.Resources.disabled;
+                this.notifyicon.Tip = "Vanguard Disabled";
+                foreach (var process in Process.GetProcessesByName("vgtray")) { process.Kill(); }
+            }
+            this.notifyicon.Update();
+        }
         public bool ACEnabled()
         {
             if (CheckSerivce("vgk") == "Running")
@@ -318,6 +340,7 @@ namespace VanSwitch
         {
             try
             {
+                UpdateNotifyIcon();
                 var vgksc = new ServiceController("vgk");
                 ServiceHelper.ChangeStartMode(vgksc, ServiceStartMode.System);
                 var vgcsc = new ServiceController("vgc");
@@ -331,9 +354,7 @@ namespace VanSwitch
         {
             try
             {
-                this.notifyicon.Icon = Properties.Resources.disabled;
-                this.notifyicon.Tip = "Vanguard Disabled";
-                this.notifyicon.Update();
+                UpdateNotifyIcon();
                 var vgksc = new ServiceController("vgk");
                 var vgcsc = new ServiceController("vgc");
                 if (vgcsc.Status == ServiceControllerStatus.Running || vgcsc.Status == ServiceControllerStatus.StartPending || vgcsc.Status == ServiceControllerStatus.ContinuePending)
@@ -352,18 +373,7 @@ namespace VanSwitch
             Visibility = Visibility.Hidden;
             this.notifyicon.ShowTip = true;
             this.notifyicon.RightMouseButtonClick += Notifyicon_RightMouseButtonClick;
-            if (ACEnabled())
-            {
-                this.notifyicon.Icon = Properties.Resources.enabled;
-                this.notifyicon.Tip = "Vanguard Enabled";
-            }
-            else
-            {
-                this.notifyicon.Icon = Properties.Resources.disabled;
-                this.notifyicon.Tip = "Vanguard Disabled";
-                foreach (var process in Process.GetProcessesByName("vgtray")) { process.Kill(); }
-            }
-            this.notifyicon.Update();
+            UpdateNotifyIcon();
         }
         private void Notifyicon_RightMouseButtonClick(object sender, MouseLocationEventArgs e)
         {
