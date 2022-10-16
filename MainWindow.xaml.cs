@@ -32,7 +32,7 @@ namespace VanSwitch
     /// </summary>
     public partial class MainWindow : Window
     {
-        const string VER = "1.0.1";
+        const string VER = "1.0.2";
         readonly NotifyIconWrapper notifyicon = new NotifyIconWrapper();
         readonly ContextMenu cm = new ContextMenu();
         bool found, open = false;
