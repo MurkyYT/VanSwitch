@@ -1,4 +1,4 @@
-# VanSwitch ![ReleaseDate](https://img.shields.io/github/release-date/murkyyt/vanswitch?label=Latest%20release) ![TotalDownloads](https://img.shields.io/github/downloads/murkyyt/vanswitch/total?color=brightgreen&label=Total%20downloads)
+# VanSwitch ![ReleaseDate](https://img.shields.io/github/release-date/murkyyt/vanswitch?label=Latest%20release) ![LatestTag](https://img.shields.io/github/v/tag/murkyyt/vanswitch?label=Latest%20version) ![TotalDownloads](https://img.shields.io/github/downloads/murkyyt/vanswitch/total?color=brightgreen&label=Total%20downloads) 
 ### [Open Latest Release](https://github.com/MurkyYT/VanSwitch/releases/latest).
 ### [Download Latest Release](https://github.com/MurkyYT/VanSwitch/releases/latest/download/VanSwitch.exe).
 Vanguard is the anticheat used in valorant,
