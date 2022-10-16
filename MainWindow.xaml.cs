@@ -259,9 +259,6 @@ namespace VanSwitch
             }
             else if (result == MessageBoxResult.Yes)
                 VistaSecurity.RestartElevated("-enableac");
-            this.notifyicon.Icon = Properties.Resources.enabled;
-            this.notifyicon.Tip = "Vanguard Enabled";
-            this.notifyicon.Update();
         }
 
         private void Disable_Click(object sender, RoutedEventArgs e)
@@ -340,7 +337,6 @@ namespace VanSwitch
         {
             try
             {
-                UpdateNotifyIcon();
                 var vgksc = new ServiceController("vgk");
                 ServiceHelper.ChangeStartMode(vgksc, ServiceStartMode.System);
                 var vgcsc = new ServiceController("vgc");
@@ -354,7 +350,6 @@ namespace VanSwitch
         {
             try
             {
-                UpdateNotifyIcon();
                 var vgksc = new ServiceController("vgk");
                 var vgcsc = new ServiceController("vgc");
                 if (vgcsc.Status == ServiceControllerStatus.Running || vgcsc.Status == ServiceControllerStatus.StartPending || vgcsc.Status == ServiceControllerStatus.ContinuePending)
@@ -362,6 +357,9 @@ namespace VanSwitch
                 if (vgksc.Status == ServiceControllerStatus.Running || vgksc.Status == ServiceControllerStatus.StartPending || vgksc.Status == ServiceControllerStatus.ContinuePending)
                     vgksc.Stop();
                 foreach (var process in Process.GetProcessesByName("vgtray")) { process.Kill(); }
+                this.notifyicon.Icon = Properties.Resources.disabled;
+                this.notifyicon.Tip = "Vanguard Disabled";
+                this.notifyicon.Update();
                 ServiceHelper.ChangeStartMode(vgksc, ServiceStartMode.Disabled);
                 ServiceHelper.ChangeStartMode(vgcsc, ServiceStartMode.Disabled);
                 return true;
