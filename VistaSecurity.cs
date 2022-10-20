@@ -23,6 +23,7 @@ namespace VanSwitch
         {
             WindowsIdentity id = WindowsIdentity.GetCurrent();
             WindowsPrincipal p = new WindowsPrincipal(id);
+            Debug.WriteLine($"VanSwitch (VistaSecurity) : IsAdmin? = {p.IsInRole(WindowsBuiltInRole.Administrator)}");
             return p.IsInRole(WindowsBuiltInRole.Administrator);
         }
         internal static void RestartElevated(string args)
@@ -33,6 +34,7 @@ namespace VanSwitch
             startInfo.FileName = Application.ExecutablePath;
             startInfo.Verb = "runas";
             startInfo.Arguments = args;
+            Debug.WriteLine($"VanSwitch (VistaSecurity) : Restaring as Elevated with args '{args}'");
             try
             {
                 Process p = Process.Start(startInfo);

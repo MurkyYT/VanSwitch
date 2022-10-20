@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
+using System.Runtime.ConstrainedExecution;
 using System.Runtime.InteropServices;
 using System.ServiceProcess;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Documents;
 
 namespace VanSwitch
 {
@@ -46,6 +49,7 @@ namespace VanSwitch
             var scManagerHandle = OpenSCManager(null, null, SC_MANAGER_ALL_ACCESS);
             if (scManagerHandle == IntPtr.Zero)
             {
+                Debug.WriteLine($"VanSwitch (ServiceHelper) : " + "Open Service Manager Error");
                 throw new ExternalException("Open Service Manager Error");
             }
 
@@ -56,6 +60,7 @@ namespace VanSwitch
 
             if (serviceHandle == IntPtr.Zero)
             {
+                Debug.WriteLine($"VanSwitch (ServiceHelper) : " + "Open Service Error");
                 throw new ExternalException("Open Service Error");
             }
 
@@ -76,12 +81,41 @@ namespace VanSwitch
             {
                 int nError = Marshal.GetLastWin32Error();
                 var win32Exception = new Win32Exception(nError);
+                Debug.WriteLine($"VanSwitch (ServiceHelper) : " + "Could not change service start type: "
+                    + win32Exception.Message);
                 throw new ExternalException("Could not change service start type: "
                     + win32Exception.Message);
             }
-
+            Debug.WriteLine($"VanSwitch (ServiceHelper) : " + $"Changed {svc.ServiceName} 'ServiceStartMode' to {mode}");
             CloseServiceHandle(serviceHandle);
             CloseServiceHandle(scManagerHandle);
+        }
+        public static string CheckSerivce(string SERVICENAME)
+        {
+            try
+            {
+                ServiceController sc = new ServiceController(SERVICENAME);
+                switch (sc.Status)
+                {
+                    case ServiceControllerStatus.Running:
+                        return "Running";
+                    case ServiceControllerStatus.Stopped:
+                        return "Stopped";
+                    case ServiceControllerStatus.Paused:
+                        return "Paused";
+                    case ServiceControllerStatus.StopPending:
+                        return "Stopping";
+                    case ServiceControllerStatus.StartPending:
+                        return "Starting";
+                    default:
+                        return "Status Changing";
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"VanSwitch (ServiceHelper) : " + ex.StackTrace);
+                return "";
+            }
         }
 
     }

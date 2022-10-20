@@ -23,7 +23,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace VanSwitch
 {
@@ -102,6 +101,7 @@ namespace VanSwitch
         }
         public MainWindow()
         {
+            KillDuplicates();
             try
             {
                 MenuItem abouttext = new MenuItem();
@@ -111,6 +111,10 @@ namespace VanSwitch
                 abouttext.Icon = new System.Windows.Controls.Image
                 {
                     Source = new BitmapImage(new Uri($"pack://application:,,,/Icons/enabled.ico"))
+                    {
+                        DecodePixelHeight = 16,
+                        DecodePixelWidth = 16
+                    }
                 };
                 MenuItem disable = new MenuItem
                 {
@@ -161,7 +165,6 @@ namespace VanSwitch
                 cm.StaysOpen = false;
                 //dele = new NativeMethods.WinEventDelegate(WinEventProc);
                 //IntPtr m_hhook = NativeMethods.SetWinEventHook(NativeMethods.EVENT_SYSTEM_FOREGROUND, NativeMethods.EVENT_SYSTEM_FOREGROUND, IntPtr.Zero, dele, 0, 0, NativeMethods.WINEVENT_OUTOFCONTEXT);
-                KillDuplicates();
                 string queryString = "SELECT * FROM __InstanceDeletionEvent WITHIN .025 WHERE TargetInstance ISA 'Win32_Process'";
                 ManagementEventWatcher managementEventWatcher = new ManagementEventWatcher(queryString);
                 managementEventWatcher.EventArrived += processStopEvent_EventArrived;
@@ -189,16 +192,21 @@ namespace VanSwitch
             {
                 System.Net.WebClient client = new System.Net.WebClient() { Encoding = Encoding.UTF8 };
                 client.Headers.Add("user-agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; .NET CLR 1.0.3705;)");
+                Debug.WriteLine($"VanSwitch {VER} : " + "Checking for updates");
                 string latestVersion = client.DownloadString("https://raw.githubusercontent.com/MurkyYT/VanSwitch/master/version.txt");
-                if(latestVersion == VER)
+                Debug.WriteLine($"VanSwitch {VER} : " + $"The latest version is {latestVersion}");
+                if (latestVersion == VER)
                 {
+                    Debug.WriteLine($"VanSwitch {VER} : " + "Latest version installed");
                     MessageBox.Show("You have the latest version!", "Check for updates (VanSwitch)", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 else
                 {
+                    Debug.WriteLine($"VanSwitch {VER} : " + $"Newer version found {VER} --> {latestVersion}");
                     MessageBoxResult result = MessageBox.Show($"Found newer verison ({latestVersion}) would you like to downlaod it?", "Check for updates (VanSwitch)", MessageBoxButton.YesNo, MessageBoxImage.Information);
                     if (result == MessageBoxResult.Yes)
                     {
+                        Debug.WriteLine($"VanSwitch {VER} : " + "Downloading latest version");
                         System.Diagnostics.Process.Start("https://github.com/MurkyYT/VanSwitch/releases/latest/download/VanSwitch.exe");
                     }
                 }
@@ -295,25 +303,6 @@ namespace VanSwitch
                 App.Current.Shutdown();
             }
         }
-        public string CheckSerivce(string SERVICENAME)
-        {
-            ServiceController sc = new ServiceController(SERVICENAME);
-            switch (sc.Status)
-            {
-                case ServiceControllerStatus.Running:
-                    return "Running";
-                case ServiceControllerStatus.Stopped:
-                    return "Stopped";
-                case ServiceControllerStatus.Paused:
-                    return "Paused";
-                case ServiceControllerStatus.StopPending:
-                    return "Stopping";
-                case ServiceControllerStatus.StartPending:
-                    return "Starting";
-                default:
-                    return "Status Changing";
-            }
-        }
         void UpdateNotifyIcon()
         {
             if (ACEnabled())
@@ -331,7 +320,7 @@ namespace VanSwitch
         }
         public bool ACEnabled()
         {
-            if (CheckSerivce("vgk") == "Running")
+            if (ServiceHelper.CheckSerivce("vgk") == "Running")
             {
                 return true;
             }
