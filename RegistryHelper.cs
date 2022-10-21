@@ -12,12 +12,12 @@ namespace VanSwitch
 {
     public static class RegistryHelper
     {
-        public static bool RemoveRegistryValue(string fullPath, RegistryView registryView = RegistryView.Default)
+        public static bool RemoveRegistryValue(string fullPath,RegistryHive registryHive = RegistryHive.CurrentUser, RegistryView registryView = RegistryView.Default)
         {
             try
             {
                 Debug.WriteLine($"VanSwitch (RegistryHelper) : " + $"Trying to delete {fullPath} registry value");
-                RegistryKey localKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, registryView);
+                RegistryKey localKey = RegistryKey.OpenBaseKey(registryHive, registryView);
                 string keyName = Path.GetDirectoryName(fullPath).Replace("Computer\\", "");
                 string valueName = Path.GetFileName(fullPath);
                 using (RegistryKey key = localKey.OpenSubKey(keyName, true))
@@ -42,12 +42,12 @@ namespace VanSwitch
                 return false;
             }
         }
-        public static bool SetRegistryValue(string fullPath, string value, RegistryView registryView = RegistryView.Default)
+        public static bool SetRegistryValue(string fullPath, string value, RegistryHive registryHive = RegistryHive.CurrentUser, RegistryView registryView = RegistryView.Default)
         {
             try
             {
                 Debug.WriteLine($"VanSwitch (RegistryHelper) : " + $"Trying to set {fullPath} registry value");
-                RegistryKey localKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, registryView);
+                RegistryKey localKey = RegistryKey.OpenBaseKey(registryHive, registryView);
                 string keyName = Path.GetDirectoryName(fullPath).Replace("Computer\\", "");
                 string valueName = Path.GetFileName(fullPath);
                 using (RegistryKey key = localKey.OpenSubKey(keyName, true))
@@ -72,9 +72,9 @@ namespace VanSwitch
                 return false;
             }
         }
-        public static object GetRegistryValue(string fullPath, RegistryView registryView = RegistryView.Default)
+        public static object GetRegistryValue(string fullPath, RegistryHive registryHive = RegistryHive.CurrentUser, RegistryView registryView = RegistryView.Default)
         {
-            RegistryKey localKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, registryView);
+            RegistryKey localKey = RegistryKey.OpenBaseKey(registryHive, registryView);
             object value = null;
             try
             {

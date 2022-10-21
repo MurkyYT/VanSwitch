@@ -31,7 +31,7 @@ namespace VanSwitch
     /// </summary>
     public partial class MainWindow : Window
     {
-        const string VER = "1.0.3";
+        const string VER = "1.0.4";
         readonly NotifyIconWrapper notifyicon = new NotifyIconWrapper();
         readonly ContextMenu cm = new ContextMenu();
         //bool opened = false;
@@ -179,6 +179,11 @@ namespace VanSwitch
             }
             Top = -1000;
             Left = -1000;
+            if (Properties.Settings.Default.vgtrayLocation == "")
+            {
+                Properties.Settings.Default.vgtrayLocation = RegistryHelper.GetRegistryValue("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run\\Riot Vanguard", RegistryHive.LocalMachine, registryView: RegistryView.Registry64).ToString();
+                Properties.Settings.Default.Save();
+            }
             InitializeComponent();
         }
         private void CheckForUpdates_Click(object sender, RoutedEventArgs e)
@@ -331,6 +336,7 @@ namespace VanSwitch
             try
             {
                 Debug.WriteLine($"VanSwitch {VER} : " + "Enabling vanguard...");
+                RegistryHelper.SetRegistryValue("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run\\Riot Vanguard", Properties.Settings.Default.vgtrayLocation, RegistryHive.LocalMachine, registryView: RegistryView.Registry64);
                 var vgksc = new ServiceController("vgk");
                 ServiceHelper.ChangeStartMode(vgksc, ServiceStartMode.System);
                 Debug.WriteLine($"VanSwitch {VER} : " + "Enabled vgk service");
@@ -368,6 +374,7 @@ namespace VanSwitch
                     process.Kill();
                     Debug.WriteLine($"VanSwitch {VER} : " + "Killed vgtray");
                 }
+                RegistryHelper.RemoveRegistryValue("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run\\Riot Vanguard", RegistryHive.LocalMachine, registryView: RegistryView.Registry64);
                 this.notifyicon.Icon = Properties.Resources.disabled;
                 this.notifyicon.Tip = "Vanguard Disabled";
                 this.notifyicon.Update();

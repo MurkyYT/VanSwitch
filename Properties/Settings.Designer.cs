@@ -46,5 +46,17 @@ namespace VanSwitch.Properties {
                 this["runAtStartUp"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string vgtrayLocation {
+            get {
+                return ((string)(this["vgtrayLocation"]));
+            }
+            set {
+                this["vgtrayLocation"] = value;
+            }
+        }
     }
 }
