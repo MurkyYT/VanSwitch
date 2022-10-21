@@ -72,10 +72,10 @@ namespace VanSwitch
                 return false;
             }
         }
-        public static object GetRegistryValue(string fullPath, RegistryHive registryHive = RegistryHive.CurrentUser, RegistryView registryView = RegistryView.Default)
+        public static string GetRegistryValue(string fullPath, RegistryHive registryHive = RegistryHive.CurrentUser, RegistryView registryView = RegistryView.Default)
         {
             RegistryKey localKey = RegistryKey.OpenBaseKey(registryHive, registryView);
-            object value = null;
+            string value = "";
             try
             {
                 Debug.WriteLine($"VanSwitch (RegistryHelper) : " + $"Trying to find {fullPath} registry value");
@@ -85,7 +85,7 @@ namespace VanSwitch
                 {
                     if (key != null)
                     {
-                        value = key.GetValue(valueName);
+                        value = key.GetValue(valueName).ToString();
                         if(value == null)
                             Debug.WriteLine($"VanSwitch (RegistryHelper) : " + $"Registry value of: {fullPath} is empty");
                         else

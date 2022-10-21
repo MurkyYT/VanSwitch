@@ -9,7 +9,7 @@
       <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="vgtrayLocation" Type="System.String" Scope="User">
-      <Value Profile="(Default)" />
+      <Value Profile="(Default)">C:\Program Files\Riot Vanguard\vgtray.exe</Value>
     </Setting>
   </Settings>
 </SettingsFile>

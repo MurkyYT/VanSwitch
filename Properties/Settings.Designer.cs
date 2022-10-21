@@ -49,7 +49,7 @@ namespace VanSwitch.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        [global::System.Configuration.DefaultSettingValueAttribute("C:\\Program Files\\Riot Vanguard\\vgtray.exe")]
         public string vgtrayLocation {
             get {
                 return ((string)(this["vgtrayLocation"]));

@@ -179,11 +179,6 @@ namespace VanSwitch
             }
             Top = -1000;
             Left = -1000;
-            if (Properties.Settings.Default.vgtrayLocation == "")
-            {
-                Properties.Settings.Default.vgtrayLocation = RegistryHelper.GetRegistryValue("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run\\Riot Vanguard", RegistryHive.LocalMachine, registryView: RegistryView.Registry64).ToString();
-                Properties.Settings.Default.Save();
-            }
             InitializeComponent();
         }
         private void CheckForUpdates_Click(object sender, RoutedEventArgs e)
@@ -195,6 +190,7 @@ namespace VanSwitch
         {
             try
             {
+                Console.WriteLine(Properties.Settings.Default.vgtrayLocation);
                 System.Net.WebClient client = new System.Net.WebClient() { Encoding = Encoding.UTF8 };
                 client.Headers.Add("user-agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; .NET CLR 1.0.3705;)");
                 Debug.WriteLine($"VanSwitch {VER} : " + "Checking for updates");
@@ -277,10 +273,8 @@ namespace VanSwitch
             else if (result == MessageBoxResult.Yes)
                 VistaSecurity.RestartElevated("-enableac");
         }
-
         private void Disable_Click(object sender, RoutedEventArgs e)
         {
-
             MessageBoxResult result =
                 MessageBox.Show("Are you sure you want to disable Vanguard?", "Disable Vanguard", MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (VistaSecurity.IsAdmin() && result == MessageBoxResult.Yes)
@@ -396,6 +390,11 @@ namespace VanSwitch
             this.notifyicon.ShowTip = true;
             this.notifyicon.RightMouseButtonClick += Notifyicon_RightMouseButtonClick;
             UpdateNotifyIcon();
+            if (Properties.Settings.Default.vgtrayLocation != RegistryHelper.GetRegistryValue("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run\\Riot Vanguard", RegistryHive.LocalMachine, RegistryView.Registry64) && RegistryHelper.GetRegistryValue("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run\\Riot Vanguard", RegistryHive.LocalMachine, RegistryView.Registry64) != "")
+            {
+                Properties.Settings.Default.vgtrayLocation = RegistryHelper.GetRegistryValue("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run\\Riot Vanguard", RegistryHive.LocalMachine, RegistryView.Registry64);
+                Properties.Settings.Default.Save();
+            }
         }
         private void Notifyicon_RightMouseButtonClick(object sender, MouseLocationEventArgs e)
         {
