@@ -337,7 +337,7 @@ namespace VanSwitch
                 var vgcsc = new ServiceController("vgc");
                 ServiceHelper.ChangeStartMode(vgcsc, ServiceStartMode.Manual);
                 Debug.WriteLine($"VanSwitch {VER} : " + "Enabled vgc service");
-                //System.Diagnostics.Process.Start("shutdown.exe", "-r -t 0");
+                System.Diagnostics.Process.Start("shutdown.exe", "-r -t 0");
                 return true;
             }
             catch (Exception ex)
