@@ -31,7 +31,8 @@ namespace VanSwitch
     /// </summary>
     public partial class MainWindow : Window
     {
-        const string VER = "1.0.4";
+        const string VER = "1.0.5";
+        const double POLLING_DELAY = 5;
         readonly NotifyIconWrapper notifyicon = new NotifyIconWrapper();
         readonly ContextMenu cm = new ContextMenu();
         //bool opened = false;
@@ -89,7 +90,7 @@ namespace VanSwitch
                 {
                     ManagementBaseObject obj = (ManagementBaseObject)e.NewEvent["TargetInstance"];
                     string processName = obj["Name"].ToString();
-                    //Debug.WriteLine($"VanSwitch {VER} : "+"Process stopped. Name: " + processName);
+                    //Debug.WriteLine($"VanSwitch {VER}: Process stopped. {processName} - {obj["Handle"]}");
                     if (processName == "VALORANT.exe")
                     {
                         Debug.WriteLine($"VanSwitch {VER} : " + "Valorant stopped");
@@ -165,7 +166,7 @@ namespace VanSwitch
                 cm.StaysOpen = false;
                 //dele = new NativeMethods.WinEventDelegate(WinEventProc);
                 //IntPtr m_hhook = NativeMethods.SetWinEventHook(NativeMethods.EVENT_SYSTEM_FOREGROUND, NativeMethods.EVENT_SYSTEM_FOREGROUND, IntPtr.Zero, dele, 0, 0, NativeMethods.WINEVENT_OUTOFCONTEXT);
-                string queryString = "SELECT * FROM __InstanceDeletionEvent WITHIN .025 WHERE TargetInstance ISA 'Win32_Process'";
+                string queryString = $"SELECT * FROM __InstanceDeletionEvent WITHIN {POLLING_DELAY} WHERE TargetInstance ISA 'Win32_Process'";
                 ManagementEventWatcher managementEventWatcher = new ManagementEventWatcher(queryString);
                 managementEventWatcher.EventArrived += processStopEvent_EventArrived;
                 managementEventWatcher.Start();
@@ -336,7 +337,7 @@ namespace VanSwitch
                 var vgcsc = new ServiceController("vgc");
                 ServiceHelper.ChangeStartMode(vgcsc, ServiceStartMode.Manual);
                 Debug.WriteLine($"VanSwitch {VER} : " + "Enabled vgc service");
-                System.Diagnostics.Process.Start("shutdown.exe", "-r -t 0");
+                //System.Diagnostics.Process.Start("shutdown.exe", "-r -t 0");
                 return true;
             }
             catch (Exception ex)
