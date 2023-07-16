@@ -1,4 +1,4 @@
-# Arhcived
+# Archived
 **VanSwitch** is archived since 16.07.2023, the app no longer will be maintained, feel free to fork it :)
 # VanSwitch ![ReleaseDate](https://img.shields.io/github/release-date/murkyyt/vanswitch?label=Latest%20release) ![LatestTag](https://img.shields.io/github/v/tag/murkyyt/vanswitch?label=Latest%20version) ![TotalDownloads](https://img.shields.io/github/downloads/murkyyt/vanswitch/total?color=brightgreen&label=Total%20downloads) 
 ### [Open Latest Release](https://github.com/MurkyYT/VanSwitch/releases/latest).
